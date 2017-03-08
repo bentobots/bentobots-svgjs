@@ -1,0 +1,22 @@
+import fs from 'fs'
+import phantom from 'phantom'
+import draw from './draw'
+
+it('draws an svg', async () => {
+  const expected = '<svg>'
+  const COMMANDS = [['rect', 10, 10], ['fill', 'pink']]
+  // console.log(draw.implementation({ ELEMENT_ID: 'canvas', COMMANDS }))
+
+  const instance = await phantom.create()
+  const page = await instance.createPage()
+  await page.on('onResourceRequested', function (requestData) {
+    console.info('Requesting', requestData.url)
+  })
+  const status = await page.open('fixtures/boilerplate.html')
+  const content = await page.property('content')
+  const ev = await page.evaluate(function () { return (SVG('svg').size(300, 300).rect(100, 100).fill('#f06').svg()) })
+  const doc = await page.evaluate(function () { return document.getElementById('svg').innerHTML })
+  await instance.exit()
+
+  expect(draw.implementation({ ELEMENT_ID: 'svg', COMMANDS })).toEqual(expected)
+})
